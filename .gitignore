@@ -1,0 +1,9 @@
+# sml build
+.cm
+
+# binaries
+*.exe
+*.dll
+*.so
+*.lib
+*.a

@@ -34,26 +34,26 @@ struct
       | maxargsStm (AssignStm (_, e1)) curmax = maxargsExp e1 curmax
       | maxargsStm (PrintStm (nil)) curmax = curmax
       | maxargsStm (PrintStm (e::rest)) curmax = let
-        val thislen = length (e::rest)
-        val maxE = maxargsExp e curmax
-        val maxrest = maxargsStm (PrintStm(rest)) maxE
-      in
-        if thislen > maxrest then 
-          thislen
-        else maxrest
-      end
+      val thislen = length (e::rest)
+      val maxE = maxargsExp e curmax
+      val maxrest = maxargsStm (PrintStm(rest)) maxE
+    in
+      if thislen > maxrest then 
+        thislen
+      else maxrest
+    end
     and maxargsExp (IdExp s) curmax = curmax
       | maxargsExp (NumExp n) curmax = curmax
       | maxargsExp (OpExp (e1, oper, e2)) curmax = let
-        val c1 = maxargsExp e1 curmax
-      in
-        maxargsExp e2 c1
-      end
+      val c1 = maxargsExp e1 curmax
+    in
+      maxargsExp e2 c1
+    end
       | maxargsExp (EseqExp (st, ex)) curmax = let
-        val c1 = maxargsStm st curmax
-      in
-        maxargsExp ex c1
-      end
+      val c1 = maxargsStm st curmax
+    in
+      maxargsExp ex c1
+    end
   in
     maxargsStm st 0
   end
@@ -78,35 +78,35 @@ struct
       interpStm (s2, t1)
     end
       | interpStm (AssignStm(sym, e), tab) = let
-        val (v, tab1) = interpExp(e, tab)
-      in
-        update(tab1, sym, v)
-      end
+      val (v, tab1) = interpExp(e, tab)
+    in
+      update(tab1, sym, v)
+    end
       | interpStm (PrintStm(nil), tab) = tab
       | interpStm (PrintStm(e::rest), tab) = let
-        val (eres, tab1) = interpExp (e, tab)
-      in
-        print ((Int.toString eres) ^ "\n");
-        interpStm(PrintStm(rest), tab1)
-      end
+      val (eres, tab1) = interpExp (e, tab)
+    in
+      print ((Int.toString eres) ^ "\n");
+      interpStm(PrintStm(rest), tab1)
+    end
     and interpExp (IdExp sym, tab) = (lookup(tab, sym), tab)
       | interpExp (NumExp v, tab) = (v, tab)
       | interpExp (OpExp (e1, oper, e2), tab) = let
-        val (v1, tab1) = interpExp (e1, tab)
-        val (v2, tab2) = interpExp (e2, tab1)
-        val res = case oper
-                    of Plus => v1 + v2
-                     | Minus => v1 - v2
-                     | Times => v1 * v2
-                     | Div => v1 div v2
-      in
-        (res, tab2)
-      end
+      val (v1, tab1) = interpExp (e1, tab)
+      val (v2, tab2) = interpExp (e2, tab1)
+      val res = case oper of 
+                  Plus => v1 + v2
+                | Minus => v1 - v2
+                | Times => v1 * v2
+                | Div => v1 div v2
+    in
+      (res, tab2)
+    end
       | interpExp (EseqExp (s1, e1), tab) = let
-        val tab1 = interpStm (s1, tab)
-      in
-        interpExp (e1, tab1)
-      end
+      val tab1 = interpStm (s1, tab)
+    in
+      interpExp (e1, tab1)
+    end
   in
     interpStm (prog, emptyEnv)
   end

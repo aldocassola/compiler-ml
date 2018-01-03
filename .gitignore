@@ -1,6 +1,9 @@
 # sml build
 .cm
 
+#lex compiled
+*.lex.sml
+
 # binaries
 *.exe
 *.dll

@@ -45,8 +45,8 @@ fun eof() = let
 in 
   if !instring then 
     ErrorMsg.error (!strpos) 
-                   ("unterminated string constant \"" ^ 
-                    String.substring(!curstr, 0, 10))
+                   ("unterminated string constant " ^ 
+                    !curstr)
   else if !commentLevel > 0 then
         ErrorMsg.error (hd(!commentPos)) "unterminated comment"
        else ();
@@ -80,16 +80,8 @@ ws = [\ \t] ;
 <INITIAL>else => (makeToken(Tokens.ELSE, yypos, yytext));
 <INITIAL>then => (makeToken(Tokens.THEN, yypos, yytext));
 <INITIAL>if => (makeToken(Tokens.IF, yypos, yytext));
-<INITIAL,COMMENT>"/*" => (push commentLevel commentPos yypos; lex());
-<COMMENT>"*/" => 
-  (checkpop commentLevel 
-            commentPos 
-            yypos 
-            "illegal comment terminator "; 
-   lex());
-<COMMENT>.+ => (lex());
 <INITIAL>"." => (makeToken(Tokens.DOT, yypos, yytext));
-<INITIAL>","	=> (makeToken(Tokens.COMMA, yypos,yytext));
+<INITIAL>"," => (makeToken(Tokens.COMMA, yypos,yytext));
 <INITIAL>":=" => (makeToken(Tokens.ASSIGN, yypos, yytext));
 <INITIAL>":" => (makeToken(Tokens.COLON, yypos, yytext));
 <INITIAL>";" => (makeToken(Tokens.SEMICOLON, yypos, yytext));
@@ -112,20 +104,34 @@ ws = [\ \t] ;
 <INITIAL>"-" => (makeToken(Tokens.MINUS, yypos, yytext));
 <INITIAL>"+" => (makeToken(Tokens.PLUS, yypos, yytext));
 <INITIAL>{ident} => (makeIdToken(Tokens.ID, yytext, yypos));
-<INITIAL>{digit}+	=> (makeNumToken(Tokens.INT, yytext, yypos));
-<INITIAL>\" => (curstr := ""; strpos:=yypos; YYBEGIN STRING; lex());
+<INITIAL>{digit}+ => (makeNumToken(Tokens.INT, yytext, yypos));
+<INITIAL>\" => 
+  (curstr := ""; strpos:=yypos; instring := true; YYBEGIN STRING; lex());
+<INITIAL,COMMENT>"/*" => 
+  (push commentLevel commentPos yypos; YYBEGIN COMMENT; lex());
+<COMMENT>"*/" => 
+  (checkpop commentLevel 
+            commentPos 
+            yypos 
+            "illegal comment terminator ";
+   if !commentLevel = 0 then YYBEGIN INITIAL else YYBEGIN COMMENT;
+   lex());
+<COMMENT>. => (lex());
 
-<STRING>[^\\]+ => (curstr := !curstr ^ yytext; lex());
 <STRING>\\ => (YYBEGIN ESCAPE; lex());
-<STRING>\" =>  (makeIdToken(Tokens.STRING, !curstr, !strpos));
+<STRING>\" =>  
+  (instring := false;
+   YYBEGIN INITIAL;
+   makeIdToken(Tokens.STRING, !curstr, !strpos));
+<STRING>. => (curstr := !curstr ^ yytext; lex());
 
 <ESCAPE>n => (curstr := !curstr ^ "\n"; YYBEGIN STRING; lex());
 <ESCAPE>t => (curstr := !curstr ^ "\t"; YYBEGIN STRING; lex());
 <ESCAPE>\^[@-_] => 
   (curstr := !curstr ^ str(chr(ord(String.sub(yytext,1)) - ord(#"@"))); 
    YYBEGIN STRING; lex());
-<ESCAPE>"\\" => (curstr := !curstr ^ "\\"; YYBEGIN STRING; lex());
-<ESCAPE>\n{ws}*\\ => (push lineNum linePos yypos; YYBEGIN STRING; lex());
+<ESCAPE>\\ => (curstr := !curstr ^ "\\"; YYBEGIN STRING; lex());
+<ESCAPE>{ws}*\n{ws}*\\ => (push lineNum linePos yypos; YYBEGIN STRING; lex());
 <ESCAPE>{ws}+\\ => (YYBEGIN STRING; lex());
 <ESCAPE>{digit}{3} => 
   (curstr := !curstr ^ str(chr(valOf (Int.fromString yytext))); 

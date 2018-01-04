@@ -137,6 +137,7 @@ ws = [\ \t] ;
   (curstr := !curstr ^ str(chr(valOf (Int.fromString yytext))); 
    YYBEGIN STRING; 
    lex());
+<ESCAPE>\" => (curstr := !curstr ^ "\""; YYBEGIN STRING; lex());
 <ESCAPE>. => (ErrorMsg.error yypos 
                              ("illegal escape sequence " ^ yytext);
               YYBEGIN STRING;

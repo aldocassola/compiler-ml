@@ -54,11 +54,11 @@ in
 end
 %% 
 
-ident = [a-zA-Z][a-zA-Z0-9_]+ ;
+ident = [a-zA-Z][a-zA-Z0-9_]* ;
 digit = [0-9] ;
 ws = [\ \t] ;
 
-%s STRING ESCAPE COMMENT ;
+%s STRING ESCAPE COMMENT LINECONT ;
 
 %%
 \n => (push lineNum linePos yypos; lex());
@@ -131,14 +131,23 @@ ws = [\ \t] ;
   (curstr := !curstr ^ str(chr(ord(String.sub(yytext,1)) - ord(#"@"))); 
    YYBEGIN STRING; lex());
 <ESCAPE>\\ => (curstr := !curstr ^ "\\"; YYBEGIN STRING; lex());
-<ESCAPE>{ws}*\n{ws}*\\ => (push lineNum linePos yypos; YYBEGIN STRING; lex());
-<ESCAPE>{ws}+\\ => (YYBEGIN STRING; lex());
+<ESCAPE>\n => (YYBEGIN LINECONT; lex());
+<ESCAPE>{ws}+ => (YYBEGIN LINECONT; lex());
 <ESCAPE>{digit}{3} => 
   (curstr := !curstr ^ str(chr(valOf (Int.fromString yytext))); 
    YYBEGIN STRING; 
    lex());
 <ESCAPE>. => (ErrorMsg.error yypos 
-                             ("illegal escape sequence " ^ yytext); 
-                             lex());
+                             ("illegal escape sequence " ^ yytext);
+              YYBEGIN STRING;
+              lex());
+
+<LINECONT>\\ => (YYBEGIN STRING; lex());
+<LINECONT>{ws}+ => (lex());
+<LINECONT>. => (ErrorMsg.error yypos
+                               ("illegal character in line continuation "
+                                ^ yytext);
+                YYBEGIN STRING;
+                lex());
 
 .       => (ErrorMsg.error yypos ("illegal character " ^ yytext); lex());

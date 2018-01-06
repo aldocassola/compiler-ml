@@ -4,6 +4,11 @@
 #lex compiled
 *.lex.sml
 
+#yacc compiled
+*.grm.desc
+*.grm.sig
+*.grm.sml
+
 # binaries
 *.exe
 *.dll

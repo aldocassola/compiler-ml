@@ -1,0 +1,32 @@
+This grammar for tiger only contains one shift-reduce conflict.
+
+Shift/reduce conficts
+---------------------
+If/then vs If/then/else is fine. Shifting is equivalent to the second for which is what ml-yacc prefers.
+
+How other s-r conflicts were handled
+------------------------------------
+I deal with the confusion b/w "id[exp]" and "typeid[exp] of exp" 
+with an intermediate non-terminal:
+bracketed : id[exp] 
+
+Then array declaration and lvalues become:
+arraydec : bracketed of exp
+
+lvalue : (...)
+       | bracketed
+
+This way the parser can always reduce to a temporary form and advance to 
+see whether a FOR token awaits at the end. If not, then it is an lvalue.
+
+I enforce binary expression precedence introducing nonterminals for
+  * OR terms
+  * AND factors
+  * COMP expressions
+  * addition expressions incl minus
+  * product expressions incl divide
+  * parenthesis
+  * unary minus (including precedence indicators)
+in that order. This has the advantage of making the grammar unambiguous,
+if a little more confusing. Maybe it is better to just use the yacc directives
+for clarity?

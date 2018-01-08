@@ -12,11 +12,11 @@
   | FUNCTION | VAR | TYPE 
 
 %nonterm  exp | program | expseq | lvalue | letexp | funcall | binexp
-          | recordcreate | arraycreate | assignment | ifthenelse | ifthen
+          | recordcreate | arraycreate | ifthenelse | ifthen
           | whileexp | forexp | decs | dec | tydec | vardec | fundec | ty 
           | tyfields | tyseq | seqrest | paramlist | bracketed
-          | paramrest | orterm | andfactor | compexp | arithexp
-          | term | factor | compop | fieldscreate | fieldsrest
+          | paramrest | rhs | andfactor | compexp | arithexp
+          | term | factor | compop | fieldscreate | fieldsrest | exps | expsrest
 
 %pos int
 %verbose
@@ -35,27 +35,17 @@
 %value INT (1)
 %value STRING ("")
 
-%nonassoc ASSIGN
-%left OR
-%left AND
-%nonassoc EQ NEQ LT GT LE GE
-
 %%
 
 program : exp ()
 
-exp : lvalue ()
-    | NIL ()
+exp : NIL ()
     | expseq ()
     | LPAREN RPAREN ()
     | letexp ()
-    | INT ()
-    | STRING ()
-    | funcall ()
     | binexp ()
     | recordcreate ()
     | arraycreate ()
-    | assignment ()
     | ifthenelse ()
     | ifthen ()
     | whileexp ()
@@ -106,15 +96,18 @@ paramlist :                           ()
 paramrest :                           () 
           | COMMA exp paramrest       ()
 
-binexp : binexp OR orterm             ()
+binexp : lvalue ASSIGN rhs            ()
+       | rhs                          ()
 
-orterm : orterm OR andfactor          ()
-       | andfactor                    ()
+(* left recursion for left association *)
+rhs : rhs OR andfactor                ()
+    | andfactor                       ()
 
 andfactor : andfactor AND compexp     ()
           | compexp                   ()
 
-compexp : compexp compop arithexp   ()
+(* comparison operators do not associate *)
+compexp : arithexp compop arithexp    ()
         | arithexp                    ()
 
 arithexp : arithexp PLUS term         ()
@@ -125,9 +118,13 @@ term : term TIMES factor              ()
      | term DIVIDE factor             ()
      | factor                         ()
 
-factor : ID                           ()
-       | INT                          ()
-       | LPAREN exp RPAREN            ()
+factor : INT                          ()
+       | STRING                       ()
+       | lvalue                       ()
+       | funcall                      () 
+       | LPAREN exp RPAREN            () 
+
+       (* highest precedence; right recursion to right-associate *)
        | MINUS factor                 ()
 
 compop : EQ                           ()
@@ -137,7 +134,13 @@ compop : EQ                           ()
        | GE                           ()
        | LE                           ()
 
-letexp : LET decs IN expseq END       ()
+letexp : LET decs IN exps END         ()
+
+exps :                                () 
+     | exp expsrest                   ()
+
+expsrest :                            ()
+         | SEMICOLON exp expsrest      ()
 
 recordcreate : ID LBRACE fieldscreate RBRACE       ()
 
@@ -148,8 +151,6 @@ fieldsrest :                           ()
            | COMMA ID EQ exp fieldsrest ()
 
 arraycreate : bracketed OF exp ()
-
-assignment : lvalue ASSIGN exp         ()
 
 ifthenelse : IF exp THEN exp ELSE exp   ()
 

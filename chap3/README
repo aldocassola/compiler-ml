@@ -8,7 +8,7 @@ How other s-r conflicts were handled
 ------------------------------------
 I deal with the confusion b/w "id[exp]" and "typeid[exp] of exp" 
 with an intermediate non-terminal:
-bracketed : id[exp] 
+bracketed : lvalue [ exp ] 
 
 Then array declaration and lvalues become:
 arraydec : bracketed of exp

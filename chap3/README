@@ -20,13 +20,15 @@ This way the parser can always reduce to a temporary form and advance to
 see whether a FOR token awaits at the end. If not, then it is an lvalue.
 
 I enforce binary expression precedence introducing nonterminals for
-  * OR terms
+  * binexp which can be an assignment or a rhs
+  * rhs of an assignment
+  * OR of rhs
   * AND factors
-  * COMP expressions
-  * addition expressions incl minus
-  * product expressions incl divide
-  * parenthesis
-  * unary minus (including precedence indicators)
+  * COMP expressions (which do not associate)
+  * term expressions incl minus and plus
+  * factor expressions incl divide and times
+      which and be unary minus'ed, parenthesized exp, constants, lvalues, 
+      or function calls
 in that order. This has the advantage of making the grammar unambiguous,
 if a little more confusing. Maybe it is better to just use the yacc directives
 for clarity?

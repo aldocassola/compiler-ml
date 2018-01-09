@@ -39,8 +39,7 @@
 
 program : exp ()
 
-exp : NIL ()
-    | expseq ()
+exp : expseq ()
     | LPAREN RPAREN ()
     | letexp ()
     | binexp ()
@@ -81,7 +80,7 @@ lvalue : ID                           ()
        | lvalue DOT ID                ()
        | bracketed                    ()
 
-bracketed : ID LBRACK exp RBRACK      ()
+bracketed : lvalue LBRACK exp RBRACK      ()
 
 expseq : LPAREN exp SEMICOLON exp seqrest RPAREN   ()
 
@@ -118,7 +117,8 @@ term : term TIMES factor              ()
      | term DIVIDE factor             ()
      | factor                         ()
 
-factor : INT                          ()
+factor : NIL                          ()
+       | INT                          ()
        | STRING                       ()
        | lvalue                       ()
        | funcall                      () 

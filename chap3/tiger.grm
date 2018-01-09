@@ -52,7 +52,7 @@ exp : expseq ()
     | BREAK ()
 
 decs :                                ()
-     | decs dec                       ()
+     | dec decs                       ()
 
 dec : tydec                           ()
     | vardec                          ()

@@ -1,0 +1,174 @@
+structure A = Absyn
+%%
+%term
+    EOF
+  | ID of string
+  | INT of int | STRING of string
+  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK
+  | LBRACE | RBRACE | DOT
+  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
+  | AND | OR | ASSIGN
+  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
+  | BREAK | NIL
+  | FUNCTION | VAR | TYPE
+
+%nonterm  exp | program | expseq | lvalue | letexp | funcall | binexp
+          | recordcreate | arraycreate | ifthenelse | ifthen
+          | whileexp | forexp | decs | dec | tydec | vardec | fundec | ty
+          | tyfields | tyseq | seqrest | paramlist | bracketed
+          | paramrest | rhs | andfactor | compexp | arithexp
+          | term | factor | compop | fieldscreate | fieldsrest | exps | expsrest
+
+%pos int
+%verbose
+%start program
+%eop EOF
+%noshift EOF
+
+%name Tiger
+
+%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE
+  DO OF NIL
+
+%prefer THEN ELSE LPAREN
+
+%value ID ("bogus")
+%value INT (1)
+%value STRING ("")
+
+%%
+
+program : exp (exp)
+
+exp : expseq (expseq)
+    | LPAREN RPAREN (A.NilExp)
+    | letexp (letexp)
+    | binexp (binexp)
+    | recordcreate (recordcreate)
+    | arraycreate (arraycreate)
+    | ifthenelse (ifthenelse)
+    | ifthen (ifthen)
+    | whileexp (whileexp)
+    | forexp (forexp)
+    | BREAK (A.BreakExp(BREAKleft))
+
+decs :                                (nil)
+     | dec decs                       (dec :: decs)
+
+dec : tydec                           (tydec)
+    | vardec                          (vardec)
+    | fundec                          (fundec)
+
+tydec : TYPE ID EQ ty                 (A.TypeDec{name=ID, ty=ty, pos=IDleft})
+
+ty  : ID                              (A.NameTy(ID, IDleft))
+    | LBRACE tyfields RBRACE          (A.RecordTy(tyfields))
+    | ARRAY OF ID                     (A.ArrayTy(ID, IDleft))
+
+tyfields :                            (nil)
+         | ID COLON ID tyseq          ({name=ID1, ty=ID2, escape=ref false, pos=ID1left} :: tyseq)
+
+tyseq :                               (nil)
+      | COMMA ID COLON ID tyseq       ({name=ID1, ty=ID2, escape=ref false, pos=ID1left} :: tyseq)
+
+vardec : VAR ID ASSIGN exp            (A.VarDec({name=ID, escape=ref false, typ=nil, init=exp, pos=IDleft}))
+       | VAR ID COLON ID ASSIGN exp   (A.VarDec({name=ID1, escape=ref false, typ=ID2, init=exp, pos=ID1left}))
+
+fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp  (A.FunctionDec({name=ID, params=tyfields, result=nil, body=exp, pos=IDleft}))
+       | FUNCTION ID LPAREN tyfields RPAREN  COLON ID EQ exp (A.FunctionDec({name=ID1, params=tyfields, result=(ID2, ID2left), body=exp, pos=IDleft}))
+
+lvalue : ID                       (A.SimpleVar(ID, IDleft))
+       | lvalue DOT ID                (A.FieldVar(lvalue, ID, IDleft))
+       | bracketed                    (let val b:bracketed = bracketed
+                                       in
+                                          case b of
+                                             {name=var, exp=exp, pos=pos} => A.SubscriptVar(var, exp, pos)
+                                       end)
+
+bracketed: ID LBRACK exp RBRACK                           ({name=ID, exp=exp, pos=IDleft}:bracketed)
+
+expseq : LPAREN exp SEMICOLON exp seqrest RPAREN   (A.SeqExp((exp1, exp1left)::(exp2, exp2left)::seqrest))
+
+seqrest :                             (nil)
+        | SEMICOLON exp seqrest       ((exp, expleft)::seqrest)
+
+funcall : ID LPAREN paramlist RPAREN  (A.CallExp({func=ID, args=paramlist, pos=IDleft}))
+
+paramlist :                           (nil)
+          | exp paramrest             (exp::paramrest)
+
+paramrest :                           (nil)
+          | COMMA exp paramrest       (exp::paramrest)
+
+binexp : lvalue ASSIGN rhs            (A.AssignExp({var=lvalue, exp=rhs, pos=ASSIGNleft}))
+       | rhs                          (rhs)
+
+(* left recursion for left association *)
+rhs : rhs OR andfactor                (A.IfExp({test=rhs, then'=A.IntExp(1), else'= SOME(andfactor), pos=ORleft}))
+    | andfactor                       (andfactor)
+
+andfactor : andfactor AND compexp     (A.IfExp({test=andfactor, then'=compexp, else'=SOME(A.IntExp(0))}))
+          | compexp                   (compexp)
+
+(* comparison operators do not associate *)
+compexp : arithexp compop arithexp    (A.OpExp({left=arithexp1, oper=compop, right=arithexp2, pos=compopleft}))
+        | arithexp                    (arithexp)
+
+arithexp : arithexp PLUS term         (A.OpExp({left=arithexp1, oper=A.PlusOp, right=term, pos=PLUSleft}))
+         | arithexp MINUS term        (A.OpExp({left=arithexp1, oper=A.MinusOp, right=term, pos=PLUSleft}))
+         | term                       (term)
+
+term : term TIMES factor              (A.OpExp({left=term, oper=A.TimesOp, right=factor, pos=TIMESleft}))
+     | term DIVIDE factor             (A.OpExp({left=term, oper=A.DivideOp, right=factor, pos=DIVIDEleft}))
+     | factor                         (factor)
+
+factor : NIL                          (A.NilExp)
+       | INT                          (A.IntExp(INT))
+       | STRING                       (A.StringExp(STRING, STRINGleft))
+       | lvalue                       (lvalue)
+       | funcall                      (funcall)
+       | LPAREN exp RPAREN            (exp)
+
+       (* highest precedence; right recursion to right-associate *)
+       | MINUS factor                 (A.OpExp({left=A.IntExp(0), oper=A.MinusOp, right=factor}))
+
+compop : EQ                           (A.EqOp)
+       | NEQ                          (A.NeqOp)
+       | LT                           (A.LtOp)
+       | GT                           (A.GtOp)
+       | GE                           (A.GeOp)
+       | LE                           (A.LeOp)
+
+letexp : LET decs IN exps END         (A.LetExp({decs=decs, body=exps, pos=LETleft}))
+
+exps :                                (nil)
+     | exp expsrest                   (exp::expsrest)
+
+expsrest :                            (nil)
+         | SEMICOLON exp expsrest      (exp::exprest)
+
+recordcreate : ID LBRACE fieldscreate RBRACE       (A.RecordExp({fields=fieldscreate,typ=ID, pos=LBRACEleft}))
+
+fieldscreate :                         (nil)
+             | ID EQ exp fieldsrest    ((ID, exp, IDleft)::fieldsrest)
+
+fieldsrest :                           (nil)
+           | COMMA ID EQ exp fieldsrest ((ID, exp, IDleft)::fieldsrest)
+
+arraycreate : bracketed OF exp             (let val b:bracketed = bracketed
+                                            in
+                                                case b
+                                                   of {name=A.SimpleVar(sym, typos), exp=e, pos=_} => A.ArrayExp{typ=sym, size=e, init=exp, pos=typos}
+                                                    | {name=A.FieldVar(A.SimpleVar(sym, pos), _, _), exp=e, pos=_} => Error.error pos sym ^ " does not name a type"
+                                                    | _ => Error.error bracketedleft "array creation must name a type"
+                                            end)
+
+ifthenelse : IF exp THEN exp ELSE exp   (A.IfExp{test=exp1, then'=exp2, else'=SOME exp2, pos=IFleft})
+
+ifthen : IF exp THEN exp                (A.IfExp{test=exp1, then'=exp2, else'=NONE, pos=IFleft})
+
+whileexp : WHILE exp DO exp                (A.WhileExp{test=exp1, body=exp2, pos=WHILEleft})
+
+forexp : FOR ID ASSIGN exp TO exp DO exp   (A.ForExp{var=ID, escape=ref false, lo=exp1, hi=exp2, body=exp3, pos=FORleft})
+
+

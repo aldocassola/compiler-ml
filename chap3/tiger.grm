@@ -1,19 +1,19 @@
 %%
 %term
-    EOF 
+    EOF
   | ID of string
-  | INT of int | STRING of string 
-  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
-  | LBRACE | RBRACE | DOT 
+  | INT of int | STRING of string
+  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK
+  | LBRACE | RBRACE | DOT
   | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
   | AND | OR | ASSIGN
-  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
+  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
-  | FUNCTION | VAR | TYPE 
+  | FUNCTION | VAR | TYPE
 
 %nonterm  exp | program | expseq | lvalue | letexp | funcall | binexp
           | recordcreate | arraycreate | ifthenelse | ifthen
-          | whileexp | forexp | decs | dec | tydec | vardec | fundec | ty 
+          | whileexp | forexp | decs | dec | tydec | vardec | fundec | ty
           | tyfields | tyseq | seqrest | paramlist | bracketed
           | paramrest | rhs | andfactor | compexp | arithexp
           | term | factor | compop | fieldscreate | fieldsrest | exps | expsrest
@@ -26,7 +26,7 @@
 
 %name Tiger
 
-%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE 
+%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE
   DO OF NIL
 
 %prefer THEN ELSE LPAREN
@@ -67,7 +67,7 @@ ty  : ID                              ()
 tyfields :                            ()
          | ID COLON ID tyseq          ()
 
-tyseq :                               () 
+tyseq :                               ()
       | COMMA ID COLON ID tyseq       ()
 
 vardec : VAR ID ASSIGN exp            ()
@@ -92,7 +92,7 @@ funcall : ID LPAREN paramlist RPAREN  ()
 paramlist :                           ()
           | exp paramrest             ()
 
-paramrest :                           () 
+paramrest :                           ()
           | COMMA exp paramrest       ()
 
 binexp : lvalue ASSIGN rhs            ()
@@ -121,8 +121,8 @@ factor : NIL                          ()
        | INT                          ()
        | STRING                       ()
        | lvalue                       ()
-       | funcall                      () 
-       | LPAREN exp RPAREN            () 
+       | funcall                      ()
+       | LPAREN exp RPAREN            ()
 
        (* highest precedence; right recursion to right-associate *)
        | MINUS factor                 ()
@@ -136,7 +136,7 @@ compop : EQ                           ()
 
 letexp : LET decs IN exps END         ()
 
-exps :                                () 
+exps :                                ()
      | exp expsrest                   ()
 
 expsrest :                            ()

@@ -71,10 +71,10 @@ tyseq :                               ()
       | COMMA ID COLON ID tyseq       ()
 
 vardec : VAR ID ASSIGN exp            ()
-       | VAR ID COLON ID ASSIGN exp   ()
+       | VAR ID COLON ty ASSIGN exp   ()
 
 fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp  ()
-       | FUNCTION ID LPAREN tyfields RPAREN  COLON ID EQ exp ()
+       | FUNCTION ID LPAREN tyfields RPAREN  COLON ty EQ exp ()
 
 lvalue : ID                           ()
        | lvalue DOT ID                ()
@@ -137,10 +137,7 @@ compop : EQ                           ()
 letexp : LET decs IN exps END         ()
 
 exps :                                ()
-     | exp expsrest                   ()
-
-expsrest :                            ()
-         | SEMICOLON exp expsrest      ()
+     | exp seqrest                    ()
 
 recordcreate : ID LBRACE fieldscreate RBRACE       ()
 

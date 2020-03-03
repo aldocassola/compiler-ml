@@ -3,8 +3,7 @@ struct
 
 type pos = int   and   symbol = Symbol.symbol
 
-datatype program = Program of exp
-and var = SimpleVar of symbol * pos
+datatype var = SimpleVar of symbol * pos
             | FieldVar of var * symbol * pos
             | SubscriptVar of var * exp * pos
 
@@ -48,7 +47,6 @@ withtype field = {name: symbol, escape: bool ref,
 		   result: (symbol * pos) option,
 		   body: exp,
 		   pos: pos}
-   type   bracketed = {name: symbol, exp: exp, pos: pos}
    type   onety = {name: symbol, ty: ty, pos: pos}
 
 end

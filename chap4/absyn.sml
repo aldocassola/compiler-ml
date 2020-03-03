@@ -48,7 +48,6 @@ withtype field = {name: symbol, escape: bool ref,
 		   result: (symbol * pos) option,
 		   body: exp,
 		   pos: pos}
-   type   bracketed = {name: symbol, exp: exp, pos: pos}
    type   onety = {name: symbol, ty: ty, pos: pos}
 
 end

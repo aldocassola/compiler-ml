@@ -73,7 +73,7 @@ tyseq :                               ()
       | COMMA ID COLON ID tyseq       ()
 
 vardec : VAR ID ASSIGN exp            ()
-       | VAR ID COLON ty ASSIGN exp   ()
+       | VAR ID COLON ID ASSIGN exp   ()
 
 fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp  ()
        | FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ exp ()

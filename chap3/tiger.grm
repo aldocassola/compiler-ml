@@ -1,3 +1,4 @@
+val bogus = 0
 %%
 %term
     EOF
@@ -16,7 +17,8 @@
           | whileexp | forexp | decs | dec | tydec | vardec | fundec | ty
           | tyfields | tyseq | seqrest | paramlist | bracketed
           | paramrest | rhs | andfactor | compexp | arithexp
-          | term | factor | compop | fieldscreate | fieldsrest | exps | expsrest
+          | term | factor | compop | fieldscreate | fieldsrest | exps
+          | lvaluerest
 
 %pos int
 %verbose
@@ -74,13 +76,13 @@ vardec : VAR ID ASSIGN exp            ()
        | VAR ID COLON ty ASSIGN exp   ()
 
 fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp  ()
-       | FUNCTION ID LPAREN tyfields RPAREN  COLON ty EQ exp ()
+       | FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ exp ()
 
-lvalue : ID                           ()
-       | lvalue DOT ID                ()
-       | bracketed                    ()
+lvalue : ID lvaluerest                ()
 
-bracketed : lvalue LBRACK exp RBRACK      ()
+lvaluerest :                          ()
+           | DOT ID lvaluerest        ()
+           | LBRACK exp RBRACK lvaluerest ()
 
 expseq : LPAREN exp SEMICOLON exp seqrest RPAREN   ()
 
@@ -147,7 +149,7 @@ fieldscreate :                         ()
 fieldsrest :                           ()
            | COMMA ID EQ exp fieldsrest ()
 
-arraycreate : bracketed OF exp ()
+arraycreate : ID LBRACK exp RBRACK OF exp ()
 
 ifthenelse : IF exp THEN exp ELSE exp   ()
 

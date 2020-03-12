@@ -15,3 +15,7 @@
 *.so
 *.lib
 *.a
+
+#vscode stuff
+.vscode/
+sml.json

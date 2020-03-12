@@ -1,14 +1,14 @@
 structure A = Absyn
 structure S = Symbol
 
-fun unravel ([], sym, pos) =
+fun varlist_to_lvalue ([], sym, pos) =
               A.SimpleVar (sym, pos)
-  | unravel ((A.FieldVar (_, sym1, pos1)::rest), sym2, pos2) =
-              A.FieldVar(unravel (rest, sym2, pos2), sym1, pos1)
-  | unravel ((A.SubscriptVar (_, sym1, pos1)::rest), sym2, pos2) =
-              A.SubscriptVar (unravel (rest, sym2, pos2), sym1, pos1)
-  | unravel (_, sym, pos) = (ErrorMsg.error pos "Invalid variable";
-                            A.SimpleVar(sym, pos))
+  | varlist_to_lvalue ((A.FieldVar (_, sym1, pos1)::rest), sym2, pos2) =
+              A.FieldVar(varlist_to_lvalue (rest, sym2, pos2), sym1, pos1)
+  | varlist_to_lvalue ((A.SubscriptVar (_, sym1, pos1)::rest), sym2, pos2) =
+              A.SubscriptVar (varlist_to_lvalue (rest, sym2, pos2), sym1, pos1)
+  | varlist_to_lvalue (_, sym, pos) = (ErrorMsg.error pos "Invalid variable";
+                                        A.SimpleVar(sym, pos))
 
 %%
 %term
@@ -24,7 +24,7 @@ fun unravel ([], sym, pos) =
   | FUNCTION | VAR | TYPE
   | UMINUS
 
-%nonterm  prog of A.exp | exp of A.exp | stm of A.exp | lvalue of A.var
+%nonterm  program of A.exp | exp of A.exp | stm of A.exp | lvalue of A.var
           | binexp of A.exp | lvrest of A.var list
           | decs of A.dec list | dec of A.dec
           | tydec of A.onety | vardec of A.dec | fundecs of A.fundec list | ty of A.ty
@@ -39,7 +39,7 @@ fun unravel ([], sym, pos) =
 
 %pos int
 %verbose
-%start prog
+%start program
 %eop EOF
 %noshift EOF
 
@@ -64,15 +64,15 @@ fun unravel ([], sym, pos) =
 
 %%
 
-prog: stm                             (stm)
+program: exp                          (exp)
 
 exp : lvalue                          (A.VarExp lvalue)
     | NIL                             (A.NilExp)
     | INT                             (A.IntExp INT)
     | STRING                          (A.StringExp (STRING, STRINGleft))
-    | LPAREN stm RPAREN               (stm)
-    | LPAREN stm SEMICOLON seqrest RPAREN
-                                      (A.SeqExp ((stm, stmleft)::seqrest))
+    | LPAREN exp RPAREN               (exp)
+    | LPAREN exp SEMICOLON seqrest RPAREN
+                                      (A.SeqExp ((exp, expleft)::seqrest))
     | MINUS exp  %prec UMINUS         (A.OpExp {left=A.IntExp 0, oper=A.MinusOp,
                                                 right=exp, pos=MINUSright})
     | exp PLUS exp                    (A.OpExp {left=exp1, oper=A.PlusOp,
@@ -170,7 +170,7 @@ fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp
                                         result=SOME (S.symbol ID2, ID2left),
                                         body=exp, pos=FUNCTIONright})
 
-lvalue : ID lvrest                    (unravel (rev(lvrest), S.symbol ID, IDleft))
+lvalue : ID lvrest                    (varlist_to_lvalue (rev(lvrest), S.symbol ID, IDleft))
 
 lvrest :                              ([])
        | DOT ID lvrest                (A.FieldVar(A.SimpleVar(S.symbol "", 0),

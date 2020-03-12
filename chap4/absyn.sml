@@ -3,7 +3,8 @@ struct
 
 type pos = int   and   symbol = Symbol.symbol
 
-datatype var = SimpleVar of symbol * pos
+datatype program = Program of exp
+and var = SimpleVar of symbol * pos
             | FieldVar of var * symbol * pos
             | SubscriptVar of var * exp * pos
 

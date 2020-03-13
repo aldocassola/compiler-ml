@@ -1,0 +1,10 @@
+# chap4-tests.yaml
+name: 'Chap4 tests'
+description: 'Test chap4'
+outputs:
+  compile-out: # id of output
+    description: 'compile result'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  

@@ -6,5 +6,5 @@ echo pwd is $(pwd)
 # smlout=$(sml -m sources.cm)
 status=$?
 
-echo ::set-output name=compile-out::$(ls -la)
+echo ::set-output name=compile-out::$(whoami; ls -la)
 exit $status

@@ -21,7 +21,7 @@ jobs:
     steps:
 
     # Runs a single command using the runners shell
-    - name: Try compiling
+    - name: Clone repo
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       uses: actions/checkout@v2
 

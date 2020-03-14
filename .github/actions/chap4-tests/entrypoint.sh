@@ -1,7 +1,7 @@
 #!/bin/sh
 
-echo pwd is $(pwd)
 cd ${GITHUB_WORKSPACE}/chap4
+echo pwd is $(pwd)
 
 smlout=$(sml -m sources.cm)
 status=$?

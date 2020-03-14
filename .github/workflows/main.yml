@@ -28,7 +28,7 @@ jobs:
     # compiles
     - name: compile 
       id: compile
-      uses: /.github/actions/chap4-tests
+      uses: .github/actions/chap4-tests
       
     - name: get output
       run: echo output is ${{steps.compile.outputs.compile-out}}

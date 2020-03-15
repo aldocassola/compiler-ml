@@ -64,15 +64,15 @@ fun varlist_to_lvalue ([], sym, pos) =
 
 %%
 
-program: exp                          (exp)
+program: stm                          (stm)
 
 exp : lvalue                          (A.VarExp lvalue)
     | NIL                             (A.NilExp)
     | INT                             (A.IntExp INT)
     | STRING                          (A.StringExp (STRING, STRINGleft))
-    | LPAREN exp RPAREN               (exp)
-    | LPAREN exp SEMICOLON seqrest RPAREN
-                                      (A.SeqExp ((exp, expleft)::seqrest))
+    | LPAREN stm RPAREN               (stm)
+    | LPAREN stm SEMICOLON seqrest RPAREN
+                                      (A.SeqExp ((stm, stmleft)::seqrest))
     | MINUS exp  %prec UMINUS         (A.OpExp {left=A.IntExp 0, oper=A.MinusOp,
                                                 right=exp, pos=MINUSright})
     | exp PLUS exp                    (A.OpExp {left=exp1, oper=A.PlusOp,
@@ -110,8 +110,6 @@ exp : lvalue                          (A.VarExp lvalue)
                                                   args=paramlist,
                                                   pos=LPARENleft})
     | LPAREN RPAREN                   (A.SeqExp [])
-    | lvalue ASSIGN exp               (A.AssignExp {var=lvalue, exp=exp,
-                                                    pos=ASSIGNleft})
     | BREAK                           (A.BreakExp BREAKleft)
 
 stm : ID LBRACK exp RBRACK OF stm     (A.ArrayExp {typ=S.symbol ID, size=exp1,
@@ -126,6 +124,8 @@ stm : ID LBRACK exp RBRACK OF stm     (A.ArrayExp {typ=S.symbol ID, size=exp1,
                                                   escape=ref false, lo=exp1,
                                                   hi=exp2, body=stm,
                                                   pos=FORleft})
+    | lvalue ASSIGN stm               (A.AssignExp {var=lvalue, exp=stm,
+                                                    pos=ASSIGNleft})
     | exp                             (exp)
 
 decs : dec                            ([dec])
@@ -164,16 +164,17 @@ vardec : VAR ID ASSIGN stm            (A.VarDec {name=S.symbol ID,
 fundecs : fundec                      ([fundec])
         | fundec fundecs              (fundec::fundecs)
 
-fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp
+fundec : FUNCTION ID LPAREN tyfields RPAREN EQ stm
                                       ({name=S.symbol ID, params=tyfields,
-                                        result=NONE, body=exp,
+                                        result=NONE, body=stm,
                                         pos=FUNCTIONright})
-       | FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ exp
+       | FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ stm
                                       ({name= S.symbol ID1, params=tyfields,
                                         result=SOME (S.symbol ID2, ID2left),
-                                        body=exp, pos=FUNCTIONright})
+                                        body=stm, pos=FUNCTIONright})
 
-lvalue : ID lvrest                    (varlist_to_lvalue (rev(lvrest), S.symbol ID, IDleft))
+lvalue : ID lvrest                    (varlist_to_lvalue
+                                        (rev(lvrest), S.symbol ID, IDleft))
 
 lvrest :                              ([])
        | DOT ID lvrest                (A.FieldVar(A.SimpleVar(S.symbol "", 0),
@@ -184,12 +185,12 @@ lvrest :                              ([])
                                                       exp,
                                                       LBRACKleft)::lvrest)
 
-seqrest : exp                         ([(exp, expleft)])
-        | exp SEMICOLON seqrest       ((exp, expleft)::seqrest)
+seqrest : stm                         ([(stm, stmleft)])
+        | stm SEMICOLON seqrest       ((stm, stmleft)::seqrest)
 
 exps :                                ([])
-     | exp                            ([(exp, expleft)])
-     | exp SEMICOLON exps             ((exp, expleft)::exps)
+     | stm                            ([(stm, stmleft)])
+     | stm SEMICOLON exps             ((stm, stmleft)::exps)
 
 paramlist :                           (nil)
           | stm paramrest             (stm::paramrest)

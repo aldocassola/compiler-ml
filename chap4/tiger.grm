@@ -101,7 +101,7 @@ exp : lvalue                          (A.VarExp lvalue)
     | exp OR exp                      (A.IfExp {test=exp1, then'=A.IntExp 1,
                                                 else'=SOME exp2, pos=ORleft})
     | LET decs IN exps END            (A.LetExp {decs=decs,
-                                                  body=A.SeqExp(rev (exps)),
+                                                  body=A.SeqExp(exps),
                                                   pos=LETleft})
     | ID LBRACE fieldscreate RBRACE   (A.RecordExp {typ=S.symbol ID,
                                                     fields=fieldscreate,
@@ -128,13 +128,15 @@ stm : ID LBRACK exp RBRACK OF stm     (A.ArrayExp {typ=S.symbol ID, size=exp1,
                                                   pos=FORleft})
     | exp                             (exp)
 
-decs : dec decs                       (dec::decs)
+decs : dec                            ([dec])
+     | dec decs                      (dec::decs)
 
 dec : tydecs                          (A.TypeDec tydecs)
     | vardec                          (vardec)
     | fundecs                         (A.FunctionDec fundecs)
 
-tydecs: tydec tydecs                  (tydec::tydecs)
+tydecs: tydec                         ([tydec])
+      | tydec tydecs                  (tydec::tydecs)
 
 tydec : TYPE ID EQ ty                 ({name=S.symbol ID, ty=ty, pos=IDleft})
 
@@ -159,7 +161,8 @@ vardec : VAR ID ASSIGN stm            (A.VarDec {name=S.symbol ID,
                                                             ID2left),
                                                   init=stm, pos=ASSIGNleft})
 
-fundecs : fundec fundecs              (fundec::fundecs)
+fundecs : fundec                      ([fundec])
+        | fundec fundecs              (fundec::fundecs)
 
 fundec : FUNCTION ID LPAREN tyfields RPAREN EQ exp
                                       ({name=S.symbol ID, params=tyfields,

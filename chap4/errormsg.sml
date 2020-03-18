@@ -28,26 +28,26 @@ struct
 
   exception Error
 
+  fun printerr x = TextIO.output (TextIO.stdErr, x)
+
   fun error pos (msg:string) =
       let fun look(a::rest,n) =
-		if a<pos then app print [":",
+		if a<pos then app printerr [":",
 				       Int.toString n,
 				       ".",
 				       Int.toString (pos-a)]
 		       else look(rest,n-1)
-	    | look _ = print "0.0"
+	    | look _ = printerr "0.0"
        in anyErrors := true;
-	  print (!fileName);
+	  printerr (!fileName);
 	  look(!linePos,!lineNum);
-	  print ":";
-	  print msg;
-	  print "\n"
+	  app printerr [":", msg, "\n"]
       end
 
   fun impossible msg =
-      (app print ["Error: Compiler bug: ",msg,"\n"];
+      (app printerr ["Error: Compiler bug: ",msg,"\n"];
        TextIO.flushOut TextIO.stdOut;
        raise Error)
 
 end  (* structure ErrorMsg *)
-  
+

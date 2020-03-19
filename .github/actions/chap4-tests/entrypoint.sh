@@ -14,7 +14,7 @@ fi
 allfiles="tiger/testcases/*.tig"
 
 smlout=$( (echo CM.make \"sources.cm\"\;
-for f in "$allfiles"; do \
+for f in $allfiles; do \
     echo Parse.parse \"$f\"\;
 done ) | sml 2> error.log)
 

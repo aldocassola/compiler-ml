@@ -6,7 +6,7 @@ cd ${GITHUB_WORKSPACE}/chap4
 echo pwd is $(pwd)
 
 if ! [ -d testcases ]; then
-    (curl -s ${tiger_tar_url} | tar xf - testcases) || exit 1
+    (curl -s ${tiger_tar_url} | tar xf - tiger/testcases) || exit 1
 fi
 
 allfiles="testcases/*.tig"

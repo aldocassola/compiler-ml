@@ -1,10 +1,23 @@
 #!/bin/sh
 
+tiger_tar_url=https://www.cs.princeton.edu/~appel/modern/ml/tiger.tar
+
 cd ${GITHUB_WORKSPACE}/chap4
 echo pwd is $(pwd)
 
-smlout=$(sml -m sources.cm)
+if ! [ -d testcases ]; then
+    (curl -s ${tiger_tar_url} | tar xf - testcases) || exit 1
+fi
+
+allfiles="testcases/*.tig"
+
+smlout=$( (echo CM.make \"sources.cm\"\;
+for f in "$allfiles"; do \
+    echo Parse.parse \"$f\"\;
+done ) | sml 2> error.log)
+
 status=$?
 
 echo ::set-output name=compile-out::$smlout
+echo ::set-output name=compile-err::$(cat error.log)
 exit $status

@@ -3,8 +3,10 @@ name: 'Chap4 tests'
 description: 'Test chap4'
 outputs:
   compile-out: # id of output
-    description: 'compile result'
+    description: 'test result'
+  compile-err:
+    description: 'parse errors'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  
+

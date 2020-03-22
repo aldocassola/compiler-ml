@@ -20,11 +20,6 @@ done ) | sml 2> error.log)
 
 status=$?
 
-<<<<<<< HEAD
-echo ::set-output name=compile-out::$smlout
-# echo ::set-output name=compile-err::$(cat error.log)
-=======
 echo ::set-output name=compile-out::"$smlout"
 echo ::set-output name=compile-err::"$(cat error.log)"
->>>>>>> fca20515710aa5b48bb43668e34fa58dbf186d16
 exit $status

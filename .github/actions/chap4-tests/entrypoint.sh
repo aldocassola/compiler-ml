@@ -6,18 +6,25 @@ cd ${GITHUB_WORKSPACE}/chap4
 echo pwd is $(pwd)
 
 if ! [ -d testcases ]; then
-    (curl -s ${tiger_tar_url} | tar xf - testcases) || exit 1
+    (curl -s ${tiger_tar_url} | tar xf - tiger/testcases) || exit 1
 fi
 
-allfiles="testcases/*.tig"
+[ -d tiger/testcases ] || exit 1
+
+allfiles="tiger/testcases/*.tig"
 
 smlout=$( (echo CM.make \"sources.cm\"\;
-for f in "$allfiles"; do \
+for f in $allfiles; do \
     echo Parse.parse \"$f\"\;
 done ) | sml 2> error.log)
 
 status=$?
 
+<<<<<<< HEAD
 echo ::set-output name=compile-out::$smlout
 # echo ::set-output name=compile-err::$(cat error.log)
+=======
+echo ::set-output name=compile-out::"$smlout"
+echo ::set-output name=compile-err::"$(cat error.log)"
+>>>>>>> fca20515710aa5b48bb43668e34fa58dbf186d16
 exit $status

@@ -19,5 +19,5 @@ done ) | sml 2> error.log)
 status=$?
 
 echo ::set-output name=compile-out::$smlout
-echo ::set-output name=compile-err::$(cat error.log)
+# echo ::set-output name=compile-err::$(cat error.log)
 exit $status

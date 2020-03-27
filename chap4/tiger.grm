@@ -129,7 +129,7 @@ stm : ID LBRACK exp RBRACK OF stm     (A.ArrayExp {typ=S.symbol ID, size=exp1,
     | exp                             (exp)
 
 decs : dec                            ([dec])
-     | dec decs                      (dec::decs)
+     | dec decs                       (dec::decs)
 
 dec : tydecs                          (A.TypeDec tydecs)
     | vardec                          (vardec)

@@ -31,4 +31,6 @@ jobs:
       uses: ./.github/actions/chap4-tests
       
     - name: get output
-      run: echo output is ${{steps.compile.outputs.compile-out}}
+      run: |
+        echo output is ${{steps.compile.outputs.compile-out}}
+        echo errors: ${{steps.compile.outputs.compile-err}}

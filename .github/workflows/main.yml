@@ -32,5 +32,5 @@ jobs:
       
     - name: get output
       run: |
-        echo output is ${{steps.compile.outputs.compile-out}}
-        echo errors: ${{steps.compile.outputs.compile-err}}
+        echo "output is ${{steps.compile.outputs.compile-out}}"
+        echo "errors: ${{steps.compile.outputs.compile-err}}"

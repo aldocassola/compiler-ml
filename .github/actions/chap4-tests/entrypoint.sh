@@ -23,5 +23,5 @@ smlout=$((echo CM.make \"sources.cm\"\;
 status=$?
 
 echo ::set-output name=compile-out::"$smlout"
-#echo ::set-output name=compile-err::"$(grep -v ${expected_fail} error.log)"
+echo ::set-output name=compile-err::"$(grep -v ${expected_fail} error.log)"
 exit $status
